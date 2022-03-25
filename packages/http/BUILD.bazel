@@ -1,0 +1,101 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary","js_library")
+load("@npm//@bazel/typescript:index.bzl", "ts_project","ts_config")
+load("@npm//jest-cli:index.bzl", "jest_test")
+
+
+package(default_visibility = ["//visibility:public"])
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    deps = ["//:tsconfig.json"],
+)
+
+ts_project(
+    name ="tslibrary",
+    srcs = glob(
+        [ "**/*.ts"],
+        exclude = [
+            "**/*.spec.ts",
+            "**/*.test.ts"
+        ],
+    ),
+    composite = True,
+    declaration = True,
+    preserve_jsx = True,
+    tsconfig = "tsconfig",
+    deps = [
+        "@npm//@types/node",
+        "@npm//@types/uuid",
+        "@npm//fastify",
+        "@npm//fp-ts",
+        "@npm//uuid",
+        "@npm//zod",
+        "@npm//@jest/core",
+        "@npm//@jest/transform",
+        "@npm//@types/jest",
+        "@npm//io-ts",
+        "@npm//io-ts-validator",
+        "@npm//rxjs",
+        "@npm//io-ts-types"
+    ]
+)
+
+js_library(
+    name = "common",
+    package_name = "@packages/core/common",
+    srcs = [
+        "package.json"
+    ],
+    deps = [
+        ":tslibrary"
+    ]
+)
+
+# ts_project(
+#     name = "test_lib",
+#     srcs = glob(
+#         [ "**/*.ts"]
+#     ),
+#     composite = True,
+#     declaration = True,
+#     deps = [
+#         "@npm//@types/node",
+#         "@npm//@types/uuid",
+#         "@npm//fastify",
+#         "@npm//fp-ts",
+#         "@npm//uuid",
+#         "@npm//@jest/core",
+#         "@npm//@jest/transform",
+#         "@npm//@types/jest",
+#         "@npm//io-ts",
+#         "@npm//io-ts-validator",
+#         "@npm//rxjs",
+#         "@npm//io-ts-types"
+#     ],
+#     tsconfig = "tsconfig"
+# )
+
+# jest_test(
+#     name = "test",
+#     args = [
+#         "--no-cache",
+#         "--no-watchman",
+#         "--ci",
+#         "--colors",
+#         "--config",
+#         "jest.config.js",
+#     ],
+#     data = [
+#         ":test_lib",
+#         "//:jest.config.js"
+#     ],
+#     tags = [
+#         # Need to set the pwd to avoid jest needing a runfiles helper
+#         # Windows users with permissions can use --enable_runfiles
+#         # to make this test work
+#         "no-bazelci-windows",
+#         # TODO: why does this fail almost all the time, but pass on local Mac?
+#         "no-bazelci-mac",
+#     ]
+# )
